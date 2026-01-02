@@ -603,12 +603,12 @@ export default function TruadBoonApp() {
               </button>
 
               <Card
-                className={`border-2 shadow-2xl ${
+                className={`border-2 shadow-2xl bg-white dark:bg-gray-900 ${
                   verificationResult.status === "safe"
-                    ? "border-kbank-green bg-green-50 dark:bg-green-950"
+                    ? "border-kbank-green"
                     : verificationResult.status === "warning"
-                      ? "border-warning bg-orange-50 dark:bg-orange-950"
-                      : "border-danger bg-red-50 dark:bg-red-950"
+                      ? "border-warning"
+                      : "border-danger"
                 } animate-in zoom-in slide-in-from-bottom-8 duration-500`}
               >
                 <CardContent className="py-8">

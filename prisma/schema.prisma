@@ -1,0 +1,48 @@
+// Prisma schema for Traudboon
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Foundation {
+  id            String   @id @default(cuid())
+  name          String
+  accountNumber String   @unique
+  bank          String
+  category      String   // e.g., "Disaster Relief", "Medical", "Education"
+  verified      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([accountNumber])
+  @@map("foundations")
+}
+
+model BlacklistedAccount {
+  id            String   @id @default(cuid())
+  accountNumber String   @unique
+  reportedBy    String?
+  reason        String?
+  createdAt     DateTime @default(now())
+
+  @@index([accountNumber])
+  @@map("blacklisted_accounts")
+}
+
+model VerificationLog {
+  id            String   @id @default(cuid())
+  accountNumber String
+  status        String   // "SAFE", "WARNING", "DANGER"
+  userId        String?
+  source        String   // "LINE", "WEB", "LIFF"
+  createdAt     DateTime @default(now())
+
+  @@index([accountNumber])
+  @@index([createdAt])
+  @@map("verification_logs")
+}
