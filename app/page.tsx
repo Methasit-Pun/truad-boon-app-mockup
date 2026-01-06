@@ -30,6 +30,7 @@ interface VerificationResult {
   accountNumber: string
   bank: string
   message: string
+  identifierType?: "mobile" | "taxid" | "organizationref" | "donationbox" | "reference" | "account" | "unknown"
 }
 
 type LoadingStage = {
@@ -164,11 +165,41 @@ export default function TruadBoonApp() {
     }
   }, [isAnalyzing, currentStage])
 
-  const formatAccountNumber = (input: string): string => {
+  const formatAccountNumber = (input: string, identifierType?: string): string => {
+    // For text references (REF.1), return as-is
+    if (identifierType === "reference") {
+      return input
+    }
+    
     // Remove all non-digit characters
     const digits = input.replace(/\D/g, "")
     
-    // Format as xxx-x-xxxxx-x (3 digits - 1 digit - 5 digits - 1 digit = 10 digits max)
+    // Format based on identifier type
+    if (identifierType === "donationbox") {
+      // Donation Box: 16 digits, format as xxxx-xxxx-xxxx-xxxx
+      let formatted = ""
+      for (let i = 0; i < Math.min(digits.length, 16); i++) {
+        if (i === 4 || i === 8 || i === 12) {
+          formatted += "-"
+        }
+        formatted += digits[i]
+      }
+      return formatted
+    }
+    
+    if (identifierType === "organizationref") {
+      // Organization Reference: 17 digits, format as xxxx-xxxx-xxxxx-xxxx
+      let formatted = ""
+      for (let i = 0; i < Math.min(digits.length, 17); i++) {
+        if (i === 4 || i === 8 || i === 13) {
+          formatted += "-"
+        }
+        formatted += digits[i]
+      }
+      return formatted
+    }
+    
+    // Default: Bank account format xxx-x-xxxxx-x (10 digits max)
     let formatted = ""
     const maxDigits = 10
     
@@ -181,6 +212,116 @@ export default function TruadBoonApp() {
     }
     
     return formatted
+  }
+
+  const getIdentifierLabel = (type?: string): string => {
+    switch (type) {
+      case "reference":
+        return "หมายเลขอ้างอิง (REF.1)"
+      case "donationbox":
+        return "เลขบัญชีตู้ที่"
+      case "mobile":
+        return "เบอร์โทรศัพท์"
+      case "taxid":
+        return "เลขประจำตัวผู้เสียภาษีอากร"
+      case "organizationref":
+        return "เลขประจำตัวองค์กร"
+      case "account":
+      case "unknown":
+      default:
+        return "เลขบัญชี"
+    }
+  }
+
+  const extractQRCode = async (imageFile: File): Promise<{ value: string; type: string; name?: string } | null> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = async (event) => {
+        try {
+          const img = new Image()
+          img.onload = async () => {
+            console.log("📸 [QR Extractor] Image loaded, extracting QR code...")
+            const canvas = document.createElement("canvas")
+            canvas.width = img.width
+            canvas.height = img.height
+            
+            console.log(`📐 [QR Extractor] Canvas size: ${canvas.width}x${canvas.height}`)
+            
+            const ctx = canvas.getContext("2d")
+            if (!ctx) {
+              console.error("❌ [QR Extractor] Failed to get canvas context")
+              resolve(null)
+              return
+            }
+            
+            ctx.drawImage(img, 0, 0)
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+            
+            console.log("🔍 [QR Extractor] Running jsqr on image data...")
+            // Dynamically import jsqr
+            const jsQR = (await import("jsqr")).default
+            const code = jsQR(imageData.data, imageData.width, imageData.height)
+            
+            if (code?.data) {
+              console.log("✅ [QR Extractor] QR code found!")
+              console.log("📝 [QR Extractor] Raw QR data:", code.data)
+              console.log("📝 [QR Extractor] QR data length:", code.data.length)
+              
+              // Check if it's a URL or text (not a payment QR)
+              if (code.data.startsWith("http://") || code.data.startsWith("https://")) {
+                console.warn("⚠️ [QR Extractor] QR contains URL, not a payment QR code")
+                resolve(null)
+                return
+              }
+              
+              // QR code found - parse PromptPay format
+              const { extractAccountFromPromptPay, parsePromptPay } = await import("@/lib/promptpay-parser")
+              
+              const result = extractAccountFromPromptPay(code.data)
+              const parsedData = parsePromptPay(code.data)
+              
+              if (result.value) {
+                console.log("💎 [QR Extractor] Extracted:", result.value, `(type: ${result.type})`)
+                const formatted = formatAccountNumber(result.value, result.type)
+                console.log("✨ [QR Extractor] Formatted:", formatted, `(type: ${result.type})`)
+                resolve({ value: formatted, type: result.type, name: parsedData.name })
+              } else {
+                // Not PromptPay - try to extract digits as fallback
+                console.warn("⚠️ [QR Extractor] Not PromptPay format, trying digit extraction...")
+                const digits = code.data.replace(/\D/g, "")
+                
+                if (digits.length < 10) {
+                  // Not enough digits for an account number
+                  console.warn("❌ [QR Extractor] Not enough digits found. Raw QR:", code.data)
+                  resolve(null)
+                  return
+                }
+                
+                const formatted = formatAccountNumber(digits, "unknown")
+                console.log("📌 [QR Extractor] Fallback formatted account:", formatted)
+                resolve({ value: formatted, type: "unknown", name: undefined })
+              }
+            } else {
+              console.warn("❌ [QR Extractor] No QR code found in image")
+              resolve(null)
+            }
+          }
+          img.onerror = () => {
+            console.error("❌ [QR Extractor] Failed to load image")
+            resolve(null)
+          }
+          img.src = event.target?.result as string
+        } catch (error) {
+          console.error("❌ [QR Extractor] Error:", error)
+          resolve(null)
+        }
+      }
+      reader.onerror = () => {
+        console.error("❌ [QR Extractor] Failed to read file")
+        resolve(null)
+      }
+      reader.readAsDataURL(imageFile)
+    })
   }
 
   const handleVerify = async () => {
@@ -226,21 +367,38 @@ export default function TruadBoonApp() {
 
       setIsAnalyzing(true)
       try {
-        const formData = new FormData()
-        formData.append("image", file)
-        formData.append("bank", "Unknown")
+        // Extract QR code from image
+        const extractedData = await extractQRCode(file)
+        
+        if (!extractedData) {
+          setVerificationResult({
+            status: "warning",
+            accountName: "Error",
+            accountNumber: "",
+            bank: "Unknown",
+            message: "ไม่สามารถอ่าน QR Code ได้ โปรดสแกน QR Code เงินหนุน (PromptPay) ที่ชัดเจนกว่า",
+          })
+          setIsAnalyzing(false)
+          return
+        }
 
-        const response = await fetch("/api/verify/image", {
+        setAccountNumber(extractedData.value)
+
+        // Send extracted account to backend for verification
+        const response = await fetch("/api/verify/account", {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accountNumber: extractedData.value,
+            bank: "Unknown",
+            identifierType: extractedData.type,
+            merchantName: extractedData.name,
+          }),
         })
 
         const result = await response.json()
-        
-        if (result.accountNumber) {
-          setAccountNumber(result.accountNumber)
-        }
-        
         setVerificationResult(result)
         setShowSafetyChecklist(result.status === "warning")
       } catch (error) {
@@ -672,7 +830,7 @@ export default function TruadBoonApp() {
                           <p className="text-base font-semibold text-foreground">{verificationResult.accountName}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground mb-1">เลขบัญชี</p>
+                          <p className="text-sm text-muted-foreground mb-1">{getIdentifierLabel(verificationResult.identifierType)}</p>
                           <p className="text-base font-semibold text-foreground">{verificationResult.accountNumber}</p>
                         </div>
                         <div>

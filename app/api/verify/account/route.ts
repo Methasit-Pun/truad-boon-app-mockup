@@ -4,7 +4,7 @@ import { verifyAccount } from "@/lib/verification"
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { accountNumber, bank } = body
+    const { accountNumber, bank, identifierType, merchantName } = body
 
     if (!accountNumber || !bank) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const result = verifyAccount(accountNumber, bank)
+    const result = verifyAccount(accountNumber, bank, identifierType || "account", merchantName)
     return NextResponse.json(result)
   } catch (error) {
     console.error("Verification error:", error)
