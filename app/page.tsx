@@ -107,52 +107,7 @@ const microCopyMessages = [
   "เรากำลังตรวจสอบข้อมูลจากแหล่งที่เชื่อถือได้ทั่วประเทศ",
 ]
 
-function verifyAccount(accountNumber: string): VerificationResult {
-  const cleanedAccount = accountNumber.replace(/[-\s]/g, "")
-
-  const foundation = verifiedFoundations.find((f) => {
-    const cleanedFoundationAccount = f.accountNumber.replace(/[-\s]/g, "")
-    return cleanedFoundationAccount === cleanedAccount
-  })
-
-  if (foundation) {
-    return {
-      status: "safe",
-      accountName: foundation.name,
-      accountNumber: foundation.accountNumber,
-      bank: foundation.bank,
-      message: "บัญชีนี้เป็นมูลนิธิที่ได้รับการรับรอง ปลอดภัย 100% สามารถบริจาคได้อย่างมั่นใจ",
-    }
-  }
-
-  if (blacklistedAccounts.includes(cleanedAccount)) {
-    return {
-      status: "danger",
-      accountName: "บัญชีถูกรายงานว่าเป็นมิจฉาชีพ",
-      accountNumber,
-      bank: "ไม่ระบุ",
-      message: "อันตราย! บัญชีนี้ถูกระบุว่าเป็นบัญชีมิจฉาชีพ ห้ามโอนเงิน!",
-    }
-  }
-
-  if (cleanedAccount.startsWith("08") || cleanedAccount.startsWith("09") || cleanedAccount.startsWith("06")) {
-    return {
-      status: "warning",
-      accountName: "บัญชีส่วนบุคคล",
-      accountNumber,
-      bank: "ไม่ระบุ",
-      message: "ระวัง! บัญชีนี้เป็นบัญชีส่วนตัว ไม่ใช่มูลนิธิที่ขึ้นทะเบียน กรุณาตรวจสอบให้แน่ใจก่อนโอนเงิน",
-    }
-  }
-
-  return {
-    status: "warning",
-    accountName: "ไม่พบข้อมูล",
-    accountNumber,
-    bank: "ไม่ระบุ",
-    message: "ไม่พบข้อมูลบัญชีนี้ในระบบ กรุณาตรวจสอบอีกครั้งหรือติดต่อมูลนิธิโดยตรง",
-  }
-}
+// Verification logic moved to backend: lib/verification.ts
 
 export default function TruadBoonApp() {
   const [activeTab, setActiveTab] = useState<"home" | "verified" | "guide">("home")
@@ -231,10 +186,31 @@ export default function TruadBoonApp() {
   const handleVerify = async () => {
     if (accountNumber.length >= 10) {
       setIsAnalyzing(true)
-      await new Promise((resolve) => setTimeout(resolve, 8000))
-      const result = verifyAccount(accountNumber)
-      setVerificationResult(result)
-      setShowSafetyChecklist(result.status === "warning")
+      try {
+        const response = await fetch("/api/verify/account", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accountNumber,
+            bank: "Unknown",
+          }),
+        })
+
+        const result = await response.json()
+        setVerificationResult(result)
+        setShowSafetyChecklist(result.status === "warning")
+      } catch (error) {
+        console.error("Verification error:", error)
+        setVerificationResult({
+          status: "warning",
+          accountName: "Error",
+          accountNumber,
+          bank: "Unknown",
+          message: "เกิดข้อผิดพลาดในการตรวจสอบ กรุณาลองใหม่อีกครั้ง",
+        })
+      }
       setIsAnalyzing(false)
     }
   }
@@ -249,13 +225,34 @@ export default function TruadBoonApp() {
       reader.readAsDataURL(file)
 
       setIsAnalyzing(true)
-      await new Promise((resolve) => setTimeout(resolve, 8000))
+      try {
+        const formData = new FormData()
+        formData.append("image", file)
+        formData.append("bank", "Unknown")
 
-      const mockScannedAccount = "565-471106-1"
-      setAccountNumber(mockScannedAccount)
-      const result = verifyAccount(mockScannedAccount)
-      setVerificationResult(result)
-      setShowSafetyChecklist(result.status === "warning")
+        const response = await fetch("/api/verify/image", {
+          method: "POST",
+          body: formData,
+        })
+
+        const result = await response.json()
+        
+        if (result.accountNumber) {
+          setAccountNumber(result.accountNumber)
+        }
+        
+        setVerificationResult(result)
+        setShowSafetyChecklist(result.status === "warning")
+      } catch (error) {
+        console.error("Image verification error:", error)
+        setVerificationResult({
+          status: "warning",
+          accountName: "Error",
+          accountNumber,
+          bank: "Unknown",
+          message: "เกิดข้อผิดพลาดในการสแกน QR Code กรุณาลองใหม่อีกครั้ง",
+        })
+      }
       setIsAnalyzing(false)
     }
   }
