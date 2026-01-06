@@ -209,6 +209,25 @@ export default function TruadBoonApp() {
     }
   }, [isAnalyzing, currentStage])
 
+  const formatAccountNumber = (input: string): string => {
+    // Remove all non-digit characters
+    const digits = input.replace(/\D/g, "")
+    
+    // Format as xxx-x-xxxxx-x (3 digits - 1 digit - 5 digits - 1 digit = 10 digits max)
+    let formatted = ""
+    const maxDigits = 10
+    
+    for (let i = 0; i < Math.min(digits.length, maxDigits); i++) {
+      // Add dashes at positions 3, 4, and 9
+      if (i === 3 || i === 4 || i === 9) {
+        formatted += "-"
+      }
+      formatted += digits[i]
+    }
+    
+    return formatted
+  }
+
   const handleVerify = async () => {
     if (accountNumber.length >= 10) {
       setIsAnalyzing(true)
@@ -258,7 +277,7 @@ export default function TruadBoonApp() {
       <Card className="overflow-hidden shadow-md bg-white dark:bg-gray-900">
         <CardContent className="p-0">
           <Label htmlFor="file-upload">
-            <div className="relative w-full py-16 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-kbank-green via-kbank-green to-emerald-600 hover:from-kbank-green/95 hover:via-kbank-green/95 hover:to-emerald-600/95 text-white cursor-pointer transition-all duration-300 hover:shadow-lg leading-7">
+            <div className="relative w-full py-16 flex flex-col items-center justify-center gap-4 bg-linear-to-br from-kbank-green via-kbank-green to-emerald-600 hover:from-kbank-green/95 hover:via-kbank-green/95 hover:to-emerald-600/95 text-white cursor-pointer transition-all duration-300 hover:shadow-lg leading-7">
               <div className="relative">
                 <div className="absolute inset-0 bg-white/20 rounded-full blur-xl animate-pulse"></div>
                 <ImageIcon className="relative h-20 w-20 drop-shadow-lg" />
@@ -301,7 +320,7 @@ export default function TruadBoonApp() {
               type="text"
               placeholder="xxx-x-xxxxx-x"
               value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
+              onChange={(e) => setAccountNumber(formatAccountNumber(e.target.value))}
               className="h-14 text-lg"
               disabled={isAnalyzing}
             />
@@ -329,7 +348,7 @@ export default function TruadBoonApp() {
 
   const renderVerifiedList = () => (
     <div className="space-y-4 pb-24">
-      <div className="bg-gradient-to-br from-kbank-green to-emerald-600 text-white p-6 rounded-xl shadow-lg">
+      <div className="bg-linear-to-br from-kbank-green to-emerald-600 text-white p-6 rounded-xl shadow-lg">
         <h2 className="text-2xl font-bold mb-2">มูลนิธิที่ได้รับการรับรอง</h2>
         <p className="text-base opacity-95 leading-relaxed">รายการมูลนิธิที่ผ่านการตรวจสอบแล้ว สามารถบริจาคได้อย่างมั่นใจ</p>
       </div>
@@ -342,7 +361,7 @@ export default function TruadBoonApp() {
           >
             <CardContent className="pt-5 pb-5">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 mt-1">
+                <div className="shrink-0 mt-1">
                   <div className="h-12 w-12 rounded-full bg-kbank-green/10 flex items-center justify-center">
                     <CheckCircle2 className="h-7 w-7 text-kbank-green" />
                   </div>
@@ -368,7 +387,7 @@ export default function TruadBoonApp() {
 
   const renderGuide = () => (
     <div className="space-y-6 pb-24">
-      <div className="bg-gradient-to-br from-navy-blue to-blue-900 text-white p-6 rounded-xl shadow-lg">
+      <div className="bg-linear-to-br from-navy-blue to-blue-900 text-white p-6 rounded-xl shadow-lg">
         <div className="flex items-center gap-3 mb-3">
           <Book className="h-8 w-8" />
           <h2 className="text-2xl font-bold">คู่มือการใช้งาน</h2>
@@ -382,7 +401,7 @@ export default function TruadBoonApp() {
         </CardHeader>
         <CardContent className="space-y-4 pt-4">
           <div className="flex gap-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
+            <div className="shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
               1
             </div>
             <div className="flex-1">
@@ -394,7 +413,7 @@ export default function TruadBoonApp() {
           </div>
 
           <div className="flex gap-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
+            <div className="shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
               2
             </div>
             <div className="flex-1">
@@ -406,7 +425,7 @@ export default function TruadBoonApp() {
           </div>
 
           <div className="flex gap-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
+            <div className="shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
               3
             </div>
             <div className="flex-1">
@@ -418,7 +437,7 @@ export default function TruadBoonApp() {
           </div>
 
           <div className="flex gap-4">
-            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
+            <div className="shrink-0 h-10 w-10 rounded-full bg-kbank-green text-white flex items-center justify-center font-bold text-lg">
               4
             </div>
             <div className="flex-1">
@@ -441,23 +460,23 @@ export default function TruadBoonApp() {
         <CardContent className="space-y-4 pt-4">
           <div className="space-y-3">
             <div className="flex gap-3 items-start">
-              <XCircle className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
+              <XCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">พบโพสต์ใน Facebook หรือ LINE จากคนที่ไม่รู้จัก</p>
             </div>
             <div className="flex gap-3 items-start">
-              <XCircle className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
+              <XCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">ชื่อบัญชีไม่ตรงกับชื่อมูลนิธิที่ระบุในโพสต์</p>
             </div>
             <div className="flex gap-3 items-start">
-              <XCircle className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
+              <XCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">มีข้อความเร่งด่วน "โอนเลย" "ด่วนมาก" "เหลือเวลาไม่มาก"</p>
             </div>
             <div className="flex gap-3 items-start">
-              <XCircle className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
+              <XCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">บัญชีเป็นบัญชีส่วนตัว ไม่ใช่บัญชีองค์กร</p>
             </div>
             <div className="flex gap-3 items-start">
-              <XCircle className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
+              <XCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">ไม่มีข้อมูลสำนักงาน เบอร์โทรศัพท์ หรือเว็บไซต์อย่างเป็นทางการ</p>
             </div>
           </div>
@@ -474,19 +493,19 @@ export default function TruadBoonApp() {
         <CardContent className="space-y-4 pt-4">
           <div className="space-y-3">
             <div className="flex gap-3 items-start">
-              <CheckCircle2 className="h-5 w-5 text-kbank-green flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-kbank-green shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">บริจาคผ่านช่องทางอย่างเป็นทางการของมูลนิธิเท่านั้น</p>
             </div>
             <div className="flex gap-3 items-start">
-              <CheckCircle2 className="h-5 w-5 text-kbank-green flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-kbank-green shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">ตรวจสอบข้อมูลมูลนิธิจากเว็บไซต์หรือโทรศัพท์อย่างเป็นทางการ</p>
             </div>
             <div className="flex gap-3 items-start">
-              <CheckCircle2 className="h-5 w-5 text-kbank-green flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-kbank-green shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">ใช้แอป ตรวจบุญ ตรวจสอบทุกครั้งก่อนโอนเงิน</p>
             </div>
             <div className="flex gap-3 items-start">
-              <CheckCircle2 className="h-5 w-5 text-kbank-green flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-kbank-green shrink-0 mt-0.5" />
               <p className="text-base leading-relaxed">หากสงสัย ให้ปรึกษาลูกหลานหรือคนในครอบครัวก่อน</p>
             </div>
           </div>
@@ -497,7 +516,7 @@ export default function TruadBoonApp() {
 
   return (
     <div className="min-h-screen bg-background font-sans">
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-navy-blue to-blue-900 text-white shadow-lg">
+      <header className="sticky top-0 z-50 bg-linear-to-r from-navy-blue to-blue-900 text-white shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-center gap-3">
             <Shield className="h-8 w-8" />
@@ -529,7 +548,7 @@ export default function TruadBoonApp() {
                           alt="สลิปที่อัพโหลด"
                           className="w-full h-48 object-cover rounded-lg border-2 border-kbank-green/30 shadow-md"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg flex items-end justify-center pb-3">
+                        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent rounded-lg flex items-end justify-center pb-3">
                           <span className="text-white text-sm font-medium px-3 py-1.5 bg-black/40 rounded-full backdrop-blur-sm">
                             เลขบัญชี: {accountNumber}
                           </span>
@@ -546,7 +565,7 @@ export default function TruadBoonApp() {
                     </div>
                   </div>
 
-                  <div className="text-center space-y-3 min-h-[80px]">
+                  <div className="text-center space-y-3 min-h-20">
                     <p
                       className="text-xl font-semibold text-navy-blue animate-in fade-in slide-in-from-bottom-2 duration-300"
                       key={currentStage}
@@ -567,7 +586,7 @@ export default function TruadBoonApp() {
 
                     <p
                       className="text-sm text-muted-foreground leading-relaxed max-w-sm px-4 animate-in fade-in duration-500"
-                      key={currentMicroCopy}
+                      key={`micro-${currentMicroCopy}`}
                     >
                       {microCopyMessages[currentMicroCopy]}
                     </p>
@@ -576,7 +595,7 @@ export default function TruadBoonApp() {
                   <div className="flex gap-2">
                     {[0, 1, 2].map((i) => (
                       <div
-                        key={i}
+                        key={`dot-${i}`}
                         className="h-2 w-2 rounded-full bg-kbank-green animate-bounce"
                         style={{ animationDelay: `${i * 0.15}s` }}
                       ></div>
