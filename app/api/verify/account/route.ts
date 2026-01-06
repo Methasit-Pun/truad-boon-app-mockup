@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const result = verifyAccount(accountNumber, bank, identifierType || "account", merchantName)
+    const result = await verifyAccount(accountNumber, bank, identifierType || "account", merchantName)
     return NextResponse.json(result)
   } catch (error) {
     console.error("Verification error:", error)

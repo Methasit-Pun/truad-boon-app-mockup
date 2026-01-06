@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { mockDb } from "@/lib/mock-db"
+import { prisma } from "@/lib/prisma"
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,14 +13,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const log = {
-      accountNumber,
-      status,
-      userId: userId || null,
-      source: source || "WEB",
-    }
-
-    mockDb.addLog(log)
+    const log = await prisma.verificationLog.create({
+      data: {
+        accountNumber,
+        status,
+        userId: userId || null,
+        source: source || "WEB",
+      },
+    })
 
     return NextResponse.json(log)
   } catch (error) {
@@ -38,7 +38,16 @@ export async function GET(req: NextRequest) {
     const days = parseInt(searchParams.get("days") || "7", 10)
     const status = searchParams.get("status")
 
-    const logs = mockDb.getLogs(days, status || undefined)
+    const since = new Date()
+    since.setDate(since.getDate() - days)
+
+    const logs = await prisma.verificationLog.findMany({
+      where: {
+        createdAt: { gte: since },
+        ...(status && { status }),
+      },
+      orderBy: { createdAt: "desc" },
+    })
 
     return NextResponse.json(logs)
   } catch (error) {

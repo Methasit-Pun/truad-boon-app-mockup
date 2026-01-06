@@ -1,4 +1,4 @@
-import { mockDb } from "./mock-db"
+import { prisma } from "./prisma"
 
 export type VerificationStatus = "safe" | "warning" | "danger"
 
@@ -16,25 +16,29 @@ export interface VerificationResult {
  * - POST /api/verify/account (manual input)
  * - POST /api/verify/image (image upload)
  */
-export function verifyAccount(
+export async function verifyAccount(
   accountNumber: string,
   bank: string = "Unknown",
   identifierType: string = "account",
   merchantName?: string
-): VerificationResult {
+): Promise<VerificationResult> {
   if (!accountNumber || !bank) {
     throw new Error("Missing required fields: accountNumber, bank")
   }
 
   // Check if blacklisted
-  const blacklisted = mockDb.getBlacklistedByAccount(accountNumber)
+  const blacklisted = await prisma.blacklistedAccount.findUnique({
+    where: { accountNumber },
+  })
 
   if (blacklisted) {
     // Log the verification attempt
-    mockDb.addLog({
-      accountNumber,
-      status: "DANGER",
-      source: "WEB",
+    await prisma.verificationLog.create({
+      data: {
+        accountNumber,
+        status: "DANGER",
+        source: "WEB",
+      },
     })
 
     return {
@@ -48,14 +52,18 @@ export function verifyAccount(
   }
 
   // Check if verified foundation
-  const foundation = mockDb.getFoundationByAccount(accountNumber)
+  const foundation = await prisma.foundation.findUnique({
+    where: { accountNumber },
+  })
 
   if (foundation && foundation.verified) {
     // Log the verification attempt
-    mockDb.addLog({
-      accountNumber,
-      status: "SAFE",
-      source: "WEB",
+    await prisma.verificationLog.create({
+      data: {
+        accountNumber,
+        status: "SAFE",
+        source: "WEB",
+      },
     })
 
     return {
@@ -69,10 +77,12 @@ export function verifyAccount(
   }
 
   // Unknown account - use merchant name from QR if available
-  mockDb.addLog({
-    accountNumber,
-    status: "WARNING",
-    source: "WEB",
+  await prisma.verificationLog.create({
+    data: {
+      accountNumber,
+      status: "WARNING",
+      source: "WEB",
+    },
   })
 
   return {

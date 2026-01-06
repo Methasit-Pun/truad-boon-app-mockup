@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { mockDb } from "@/lib/mock-db"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { accountNumber: string } }
+  { params }: { params: Promise<{ accountNumber: string }> }
 ) {
   try {
-    const { accountNumber } = params
+    const { accountNumber } = await params
 
     if (!accountNumber) {
       return NextResponse.json(
@@ -15,7 +15,9 @@ export async function GET(
       )
     }
 
-    const blacklisted = mockDb.getBlacklistedByAccount(accountNumber)
+    const blacklisted = await prisma.blacklistedAccount.findUnique({
+      where: { accountNumber },
+    })
 
     return NextResponse.json({
       isBlacklisted: !!blacklisted,
