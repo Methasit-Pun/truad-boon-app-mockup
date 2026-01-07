@@ -4,6 +4,8 @@ import type { NextRequest } from 'next/server'
 export function proxy(req: NextRequest) {
   const method = req.method
   const pathname = req.nextUrl.pathname
+  const origin = req.headers.get('origin') || req.headers.get('referer')
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   
   // Determine if this is a sensitive operation (write/delete)
   const isSensitiveOp = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)
@@ -12,8 +14,21 @@ export function proxy(req: NextRequest) {
   const publicEndpoints = ['/api/foundations', '/api/blacklist']
   const isPublicRead = publicEndpoints.some(ep => pathname.startsWith(ep)) && method === 'GET'
   
-  // Allow public read-only endpoints from any origin
+  // Allow public read-only endpoints only from same-origin; external GETs must provide API key
   if (isPublicRead) {
+    if (origin && origin.startsWith(appUrl)) {
+      return NextResponse.next()
+    }
+
+    const apiKeyExternal = req.headers.get('x-api-key') || ''
+    const expectedKeyExternal = process.env.API_KEY
+    if (!expectedKeyExternal || apiKeyExternal !== expectedKeyExternal) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 403, headers: { 'content-type': 'application/json' } }
+      )
+    }
+
     return NextResponse.next()
   }
   
@@ -40,9 +55,6 @@ export function proxy(req: NextRequest) {
   }
   
   // Allow same-origin requests for the frontend (GET requests on other endpoints)
-  const origin = req.headers.get('origin') || req.headers.get('referer')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  
   if (origin && origin.startsWith(appUrl)) {
     return NextResponse.next()
   }
