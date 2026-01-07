@@ -39,40 +39,14 @@ type LoadingStage = {
   duration: number
 }
 
-const verifiedFoundations = [
-  {
-    id: "565471106-1",
-    name: "Songklanagarind for Disaster Relief (ม.อ. ทาดใหญ่)",
-    bank: "Siam Commercial Bank (SCB)",
-    accountNumber: "565-471106-1",
-  },
-  {
-    id: "045-3-04637-0",
-    name: "Thai Red Cross Society for Disaster",
-    bank: "Siam Commercial Bank (SCB)",
-    accountNumber: "045-3-04637-0",
-  },
-  {
-    id: "507-4-10183-8",
-    name: "Mirror Foundation (มูลนิธิกระจกเงา)",
-    bank: "Siam Commercial Bank (SCB)",
-    accountNumber: "507-4-10183-8",
-  },
-  {
-    id: "713-2-59590-3",
-    name: "Doing Good Foundation (มูลนิธิองค์กรกำกี)",
-    bank: "Kasikorn Bank (KBank)",
-    accountNumber: "713-2-59590-3",
-  },
-  {
-    id: "018-1-23504-7",
-    name: "Hat Yai City Climate (Southern Network)",
-    bank: "Kasikorn Bank (KBank)",
-    accountNumber: "018-1-23504-7",
-  },
-]
-
-const blacklistedAccounts = ["0999999999", "0888888888", "0777777777"]
+interface Foundation {
+  id: string
+  name: string
+  accountNumber: string
+  bank: string
+  category: string
+  verified: boolean
+}
 
 const loadingStages: LoadingStage[] = [
   {
@@ -124,6 +98,25 @@ export default function TruadBoonApp() {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null)
   const [currentStage, setCurrentStage] = useState(0)
   const [currentMicroCopy, setCurrentMicroCopy] = useState(0)
+  const [verifiedFoundations, setVerifiedFoundations] = useState<Foundation[]>([])
+  const [foundationsLoading, setFoundationsLoading] = useState(true)
+
+  // Fetch verified foundations from database on component mount
+  useEffect(() => {
+    const fetchFoundations = async () => {
+      try {
+        const response = await fetch("/api/foundations")
+        const data = await response.json()
+        setVerifiedFoundations(data)
+      } catch (error) {
+        console.error("Failed to fetch foundations:", error)
+      } finally {
+        setFoundationsLoading(false)
+      }
+    }
+    
+    fetchFoundations()
+  }, [])
 
   useEffect(() => {
     if (isAnalyzing || verificationResult) {
@@ -508,35 +501,50 @@ export default function TruadBoonApp() {
         <p className="text-base opacity-95 leading-relaxed">รายการมูลนิธิที่ผ่านการตรวจสอบแล้ว สามารถบริจาคได้อย่างมั่นใจ</p>
       </div>
 
-      <div className="space-y-3">
-        {verifiedFoundations.map((foundation) => (
-          <Card
-            key={foundation.id}
-            className="border-2 border-kbank-green/30 hover:border-kbank-green transition-all shadow-sm hover:shadow-md"
-          >
-            <CardContent className="pt-5 pb-5">
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-1">
-                  <div className="h-12 w-12 rounded-full bg-kbank-green/10 flex items-center justify-center">
-                    <CheckCircle2 className="h-7 w-7 text-kbank-green" />
+      {foundationsLoading ? (
+        <Card>
+          <CardContent className="pt-6 pb-6 flex justify-center items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="text-muted-foreground">กำลังโหลดข้อมูล...</span>
+          </CardContent>
+        </Card>
+      ) : verifiedFoundations.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6 pb-6 text-center text-muted-foreground">
+            ไม่พบข้อมูลมูลนิธิที่ได้รับการรับรอง
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {verifiedFoundations.map((foundation) => (
+            <Card
+              key={foundation.id}
+              className="border-2 border-kbank-green/30 hover:border-kbank-green transition-all shadow-sm hover:shadow-md"
+            >
+              <CardContent className="pt-5 pb-5">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 mt-1">
+                    <div className="h-12 w-12 rounded-full bg-kbank-green/10 flex items-center justify-center">
+                      <CheckCircle2 className="h-7 w-7 text-kbank-green" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground leading-snug">{foundation.name}</h3>
+                    <div className="space-y-1">
+                      <p className="text-base text-muted-foreground">
+                        <span className="font-medium text-foreground">บัญชี:</span> {foundation.accountNumber}
+                      </p>
+                      <p className="text-base text-muted-foreground">
+                        <span className="font-medium text-foreground">ธนาคาร:</span> {foundation.bank}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex-1 min-w-0 space-y-2">
-                  <h3 className="text-lg font-semibold text-foreground leading-snug">{foundation.name}</h3>
-                  <div className="space-y-1">
-                    <p className="text-base text-muted-foreground">
-                      <span className="font-medium text-foreground">บัญชี:</span> {foundation.accountNumber}
-                    </p>
-                    <p className="text-base text-muted-foreground">
-                      <span className="font-medium text-foreground">ธนาคาร:</span> {foundation.bank}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 
