@@ -106,10 +106,18 @@ export default function TruadBoonApp() {
     const fetchFoundations = async () => {
       try {
         const response = await fetch("/api/foundations")
-        const data = await response.json()
-        setVerifiedFoundations(data)
+        if (!response.ok) {
+          console.error(`Failed to fetch foundations: ${response.status} ${response.statusText}`)
+          setVerifiedFoundations([])
+        } else {
+          const data = await response.json()
+          console.log("Fetched foundations:", data)
+          // Ensure data is an array before setting state
+          setVerifiedFoundations(Array.isArray(data) ? data : [])
+        }
       } catch (error) {
         console.error("Failed to fetch foundations:", error)
+        setVerifiedFoundations([])
       } finally {
         setFoundationsLoading(false)
       }
@@ -333,13 +341,25 @@ export default function TruadBoonApp() {
         })
 
         const result = await response.json()
-        setVerificationResult(result)
-        setShowSafetyChecklist(result.status === "warning")
+        
+        // Check if response contains an error
+        if (result.error) {
+          setVerificationResult({
+            status: "warning",
+            accountName: "Unknown",
+            accountNumber,
+            bank: "Unknown",
+            message: "ไม่พบข้อมูล โปรดตรวจสอบแหล่งอื่น",
+          })
+        } else {
+          setVerificationResult(result)
+          setShowSafetyChecklist(result.status === "warning")
+        }
       } catch (error) {
         console.error("Verification error:", error)
         setVerificationResult({
           status: "warning",
-          accountName: "Error",
+          accountName: "Unknown",
           accountNumber,
           bank: "Unknown",
           message: "เกิดข้อผิดพลาดในการตรวจสอบ กรุณาลองใหม่อีกครั้ง",
@@ -392,15 +412,27 @@ export default function TruadBoonApp() {
         })
 
         const result = await response.json()
-        setVerificationResult(result)
-        setShowSafetyChecklist(result.status === "warning")
+        
+        // Check if response contains an error
+        if (result.error) {
+          setVerificationResult({
+            status: "warning",
+            accountName: "Unknown",
+            accountNumber: extractedData.value,
+            bank: extractedData.name || "Unknown",
+            message: "ไม่พบข้อมูล โปรดตรวจสอบแหล่งอื่น",
+          })
+        } else {
+          setVerificationResult(result)
+          setShowSafetyChecklist(result.status === "warning")
+        }
       } catch (error) {
         console.error("Image verification error:", error)
         setVerificationResult({
           status: "warning",
-          accountName: "Error",
-          accountNumber,
-          bank: "Unknown",
+          accountName: "Unknown",
+          accountNumber: extractedData.value,
+          bank: extractedData.name || "Unknown",
           message: "เกิดข้อผิดพลาดในการสแกน QR Code กรุณาลองใหม่อีกครั้ง",
         })
       }
