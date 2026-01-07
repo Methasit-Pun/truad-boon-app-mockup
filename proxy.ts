@@ -31,6 +31,23 @@ export function proxy(req: NextRequest) {
 
     return NextResponse.next()
   }
+
+  // Allow same-origin POSTs for verification endpoints (used by the frontend)
+  // External POSTs to these endpoints still require a valid API key
+  if (pathname.startsWith('/api/verify') && method === 'POST') {
+    if (origin && origin.startsWith(appUrl)) {
+      return NextResponse.next()
+    }
+
+    const apiKeyExternalVerify = req.headers.get('x-api-key') || ''
+    const expectedKeyExternalVerify = process.env.API_KEY
+    if (!expectedKeyExternalVerify || apiKeyExternalVerify !== expectedKeyExternalVerify) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 403, headers: { 'content-type': 'application/json' } }
+      )
+    }
+  }
   
   // For sensitive operations (write/delete), require valid authentication
   if (isSensitiveOp) {

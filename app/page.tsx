@@ -48,7 +48,7 @@ interface Foundation {
   verified: boolean
 }
 
-const loadingStages: LoadingStage[] = [
+const loadingStagesImage: LoadingStage[] = [
   {
     icon: <Search className="h-6 w-6" />,
     text: "กำลังอ่านข้อมูลจากรูปภาพ",
@@ -76,6 +76,29 @@ const loadingStages: LoadingStage[] = [
   },
 ]
 
+const loadingStagesAccount: LoadingStage[] = [
+  {
+    icon: <Search className="h-6 w-6" />,
+    text: "กำลังวิเคราะห์บัญชีปลายทาง",
+    duration: 1000,
+  },
+  {
+    icon: <Building2 className="h-6 w-6" />,
+    text: "ตรวจสอบชื่อและที่อยู่บัญชีปลายทาง",
+    duration: 1200,
+  },
+  {
+    icon: <Shield className="h-6 w-6" />,
+    text: "ตรวจข้อมูลกับมูลนิธิกว่า 200 แห่ง",
+    duration: 1500,
+  },
+  {
+    icon: <FileSearch className="h-6 w-6" />,
+    text: "สรุปผลความปลอดภัย",
+    duration: 800,
+  },
+]
+
 const microCopyMessages = [
   "ตรวจบุญกำลังดูแลความปลอดภัยให้คุณ",
   "รอสักครู่ เพื่อให้เงินบุญของคุณถึงมือผู้รับที่แท้จริง",
@@ -96,6 +119,7 @@ export default function TruadBoonApp() {
   })
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<string | null>(null)
+  const [analyzingMode, setAnalyzingMode] = useState<'image' | 'account' | null>(null)
   const [currentStage, setCurrentStage] = useState(0)
   const [currentMicroCopy, setCurrentMicroCopy] = useState(0)
   const [verifiedFoundations, setVerifiedFoundations] = useState<Foundation[]>([])
@@ -142,11 +166,13 @@ export default function TruadBoonApp() {
       let stageTimer: NodeJS.Timeout
       let microCopyTimer: NodeJS.Timeout
 
+      const currentLoadingStages = analyzingMode === 'image' ? loadingStagesImage : loadingStagesAccount
+
       const progressStages = () => {
-        if (currentStage < loadingStages.length - 1) {
+        if (currentStage < currentLoadingStages.length - 1) {
           stageTimer = setTimeout(() => {
             setCurrentStage((prev) => prev + 1)
-          }, loadingStages[currentStage].duration)
+          }, currentLoadingStages[currentStage].duration)
         }
       }
 
@@ -163,6 +189,7 @@ export default function TruadBoonApp() {
     } else {
       setCurrentStage(0)
       setCurrentMicroCopy(0)
+      setAnalyzingMode(null)
     }
   }, [isAnalyzing, currentStage])
 
@@ -327,6 +354,7 @@ export default function TruadBoonApp() {
 
   const handleVerify = async () => {
     if (accountNumber.length >= 10) {
+      setAnalyzingMode('account')
       setIsAnalyzing(true)
       try {
         const response = await fetch("/api/verify/account", {
@@ -378,7 +406,8 @@ export default function TruadBoonApp() {
       }
       reader.readAsDataURL(file)
 
-      setIsAnalyzing(true)
+        setAnalyzingMode('image')
+        setIsAnalyzing(true)
       try {
         // Extract QR code from image
         const extractedData = await extractQRCode(file)
@@ -756,7 +785,7 @@ export default function TruadBoonApp() {
                     <div className="h-20 w-20 rounded-full border-4 border-kbank-green/20"></div>
                     <div className="absolute inset-0 h-20 w-20 rounded-full border-4 border-t-kbank-green border-r-kbank-green border-b-transparent border-l-transparent animate-spin"></div>
                     <div className="absolute inset-0 flex items-center justify-center text-kbank-green animate-pulse">
-                      {loadingStages[currentStage].icon}
+                      {(analyzingMode === 'image' ? loadingStagesImage : loadingStagesAccount)[currentStage].icon}
                     </div>
                   </div>
 
@@ -765,11 +794,11 @@ export default function TruadBoonApp() {
                       className="text-xl font-semibold text-navy-blue animate-in fade-in slide-in-from-bottom-2 duration-300"
                       key={currentStage}
                     >
-                      {loadingStages[currentStage].text}
+                      {(analyzingMode === 'image' ? loadingStagesImage : loadingStagesAccount)[currentStage].text}
                     </p>
 
                     <div className="flex items-center justify-center gap-2">
-                      {loadingStages.map((_, index) => (
+                      {(analyzingMode === 'image' ? loadingStagesImage : loadingStagesAccount).map((_, index) => (
                         <div
                           key={index}
                           className={`h-1.5 rounded-full transition-all duration-300 ${

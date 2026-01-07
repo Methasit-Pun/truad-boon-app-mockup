@@ -30,9 +30,11 @@ export async function verifyAccount(
   const normalizedAccountNumber = accountNumber.replace(/\D/g, "")
 
   // Check if blacklisted
-  const blacklisted = await prisma.blacklistedAccount.findUnique({
-    where: { accountNumber: normalizedAccountNumber },
-  })
+  // DB stores account numbers with formatting (dashes). Fetch candidates and compare normalized values.
+  const blacklistedCandidates = await prisma.blacklistedAccount.findMany({})
+  const blacklisted = blacklistedCandidates.find((b) =>
+    (b.accountNumber || "").replace(/\D/g, "") === normalizedAccountNumber
+  )
 
   if (blacklisted) {
     // Log the verification attempt
@@ -55,9 +57,11 @@ export async function verifyAccount(
   }
 
   // Check if verified foundation
-  const foundation = await prisma.foundation.findUnique({
-    where: { accountNumber: normalizedAccountNumber },
-  })
+  // Foundation lookup: compare normalized account numbers to handle formatted values in DB
+  const foundationCandidates = await prisma.foundation.findMany({ where: { verified: true } })
+  const foundation = foundationCandidates.find((f) =>
+    (f.accountNumber || "").replace(/\D/g, "") === normalizedAccountNumber
+  )
 
   if (foundation && foundation.verified) {
     // Log the verification attempt
