@@ -26,16 +26,19 @@ export async function verifyAccount(
     throw new Error("Missing required fields: accountNumber, bank")
   }
 
+  // Normalize account number by removing all non-digit characters for database lookup
+  const normalizedAccountNumber = accountNumber.replace(/\D/g, "")
+
   // Check if blacklisted
   const blacklisted = await prisma.blacklistedAccount.findUnique({
-    where: { accountNumber },
+    where: { accountNumber: normalizedAccountNumber },
   })
 
   if (blacklisted) {
     // Log the verification attempt
     await prisma.verificationLog.create({
       data: {
-        accountNumber,
+        accountNumber: normalizedAccountNumber,
         status: "DANGER",
         source: "WEB",
       },
@@ -53,14 +56,14 @@ export async function verifyAccount(
 
   // Check if verified foundation
   const foundation = await prisma.foundation.findUnique({
-    where: { accountNumber },
+    where: { accountNumber: normalizedAccountNumber },
   })
 
   if (foundation && foundation.verified) {
     // Log the verification attempt
     await prisma.verificationLog.create({
       data: {
-        accountNumber,
+        accountNumber: normalizedAccountNumber,
         status: "SAFE",
         source: "WEB",
       },
@@ -79,7 +82,7 @@ export async function verifyAccount(
   // Unknown account - use merchant name from QR if available
   await prisma.verificationLog.create({
     data: {
-      accountNumber,
+      accountNumber: normalizedAccountNumber,
       status: "WARNING",
       source: "WEB",
     },

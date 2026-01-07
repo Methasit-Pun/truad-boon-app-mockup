@@ -772,20 +772,24 @@ export default function TruadBoonApp() {
       )}
 
       {verificationResult && !isAnalyzing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto py-8">
-          <div className="w-full max-w-md mx-4 my-auto animate-in zoom-in slide-in-from-bottom-8 duration-700">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-md animate-in fade-in duration-300 overflow-hidden" onClick={handleCloseResult}>
+          <div className="w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto animate-in zoom-in slide-in-from-bottom-8 duration-700" onClick={(e) => e.stopPropagation()}>
             <div className="relative">
               {/* Close button */}
               <button
-                onClick={handleCloseResult}
-                className="absolute -top-3 -right-3 z-10 h-10 w-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors border-2 border-gray-200"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCloseResult()
+                }}
+                className="absolute top-4 right-4 z-[70] h-10 w-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 transition-colors border-2 border-gray-200 cursor-pointer"
                 aria-label="ปิด"
+                type="button"
               >
                 <X className="h-5 w-5 text-gray-600" />
               </button>
 
               <Card
-                className={`border-2 shadow-2xl bg-white dark:bg-gray-900 ${
+                className={`border-2 shadow-2xl bg-white dark:bg-gray-900 mb-8 ${
                   verificationResult.status === "safe"
                     ? "border-kbank-green"
                     : verificationResult.status === "warning"
@@ -864,6 +868,29 @@ export default function TruadBoonApp() {
                   </div>
                 </CardContent>
               </Card>
+
+              {verificationResult.status === "danger" && (
+                <Card className="border-2 border-danger shadow-2xl mt-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 bg-white dark:bg-gray-900">
+                  <CardHeader className="pb-4 bg-danger/5">
+                    <CardTitle className="text-xl text-danger flex items-center gap-2">
+                      <AlertTriangle className="h-6 w-6 text-danger" />
+                      บัญชีนี้ถูกรายงานว่าเป็นมิจฉาชีพ
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">โปรดอย่าโอนเงินไปยังบัญชีนี้</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-4">
+                    <div className="p-4 bg-danger/10 border-l-4 border-danger rounded space-y-2">
+                      <p className="font-semibold text-foreground">ว่าด้วยการรายงาน:</p>
+                      <p className="text-sm text-foreground leading-relaxed">{verificationResult.message}</p>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100 leading-relaxed">
+                        💡 หากคุณพบบัญชีนี้ในการอื่นๆ หรือต้องการรายงานการหลอกลวง กรุณาติดต่อเราเพื่อให้ข้อมูลเพิ่มเติม
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {showSafetyChecklist && (
                 <Card className="border-2 border-warning shadow-2xl mt-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 bg-white dark:bg-gray-900">
@@ -978,7 +1005,7 @@ export default function TruadBoonApp() {
                     {(safetyAnswers.foundOnSocialMedia ||
                       safetyAnswers.differentName ||
                       safetyAnswers.urgentMessage) && (
-                      <div className="p-5 bg-white dark:bg-gray-900 border-2 border-danger rounded-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="p-5 bg-white dark:bg-gray-900 border-2 border-danger rounded-xl animate-in fade-in slide-in-from-bottom-4 duration-500 mb-8">
                         <p className="text-base font-semibold text-danger leading-relaxed">
                           ⚠️ ระดับความเสี่ยงสูง! มีสัญญาณของการหลอกลวง กรุณาตรวจสอบเพิ่มเติมหรือติดต่อมูลนิธิโดยตรง
                         </p>
@@ -992,7 +1019,7 @@ export default function TruadBoonApp() {
         </div>
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-2xl z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-2xl z-40" style={verificationResult ? { pointerEvents: 'none' } : {}}>
         <div className="container mx-auto px-2 max-w-2xl">
           <div className="grid grid-cols-3 gap-1">
             <button
