@@ -6,37 +6,59 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum Bank {
+  PROMPTPAY
+  KBANK
+  SCB
+  BBL
+  KTB
+  BAY
+  TMB
+  CIMB
+  TISCO
+  UOB
+  GSB
+  BAAC
+  OTHER
 }
 
 model Foundation {
   id            String   @id @default(cuid())
   name          String
   accountNumber String   @unique
-  bank          String
+  accountName   String   // Account holder name
+  bank          Bank
   category      String   // e.g., "Disaster Relief", "Medical", "Education"
   verified      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@index([accountNumber])
+  @@index([bank])
   @@map("foundations")
 }
 
 model BlacklistedAccount {
   id            String   @id @default(cuid())
   accountNumber String   @unique
+  accountName   String   // Account holder name extracted from image
+  bank          Bank     // Bank/payment method
   reportedBy    String?
   reason        String?
   createdAt     DateTime @default(now())
 
   @@index([accountNumber])
+  @@index([bank])
   @@map("blacklisted_accounts")
 }
 
 model VerificationLog {
   id            String   @id @default(cuid())
   accountNumber String
+  accountName   String?
+  bank          Bank?
   status        String   // "SAFE", "WARNING", "DANGER"
   userId        String?
   source        String   // "LINE", "WEB", "LIFF"

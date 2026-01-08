@@ -1,0 +1,36 @@
+# Editor files
+.vscode/
+.idea/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Prisma
+*.db
+*.db-journal
+
+# Misc
+*.pem
+.turbo

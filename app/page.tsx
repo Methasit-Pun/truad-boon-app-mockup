@@ -30,6 +30,7 @@ interface VerificationResult {
   accountNumber: string
   bank: string
   message: string
+  matchedType?: "FOUNDATION" | "BLACKLIST" | "NONE"
 }
 
 type LoadingStage = {
@@ -71,8 +72,6 @@ const verifiedFoundations = [
   },
 ]
 
-const blacklistedAccounts = ["0999999999", "0888888888", "0777777777"]
-
 const loadingStages: LoadingStage[] = [
   {
     icon: <Search className="h-6 w-6" />,
@@ -106,52 +105,32 @@ const microCopyMessages = [
   "รอสักครู่ เพื่อให้เงินบุญของคุณถึงมือผู้รับที่แท้จริง",
   "เรากำลังตรวจสอบข้อมูลจากแหล่งที่เชื่อถือได้ทั่วประเทศ",
 ]
-
-function verifyAccount(accountNumber: string): VerificationResult {
-  const cleanedAccount = accountNumber.replace(/[-\s]/g, "")
-
-  const foundation = verifiedFoundations.find((f) => {
-    const cleanedFoundationAccount = f.accountNumber.replace(/[-\s]/g, "")
-    return cleanedFoundationAccount === cleanedAccount
+async function requestVerification(payload: {
+  accountNumber: string
+  accountName?: string
+  bank?: string
+}): Promise<VerificationResult> {
+  const response = await fetch("/api/verify-account", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...payload, source: "WEB" }),
   })
 
-  if (foundation) {
-    return {
-      status: "safe",
-      accountName: foundation.name,
-      accountNumber: foundation.accountNumber,
-      bank: foundation.bank,
-      message: "บัญชีนี้เป็นมูลนิธิที่ได้รับการรับรอง ปลอดภัย 100% สามารถบริจาคได้อย่างมั่นใจ",
-    }
+  let data: VerificationResult | { error?: string }
+
+  try {
+    data = await response.json()
+  } catch (error) {
+    throw new Error("ไม่สามารถอ่านข้อมูลจากเซิร์ฟเวอร์ได้")
   }
 
-  if (blacklistedAccounts.includes(cleanedAccount)) {
-    return {
-      status: "danger",
-      accountName: "บัญชีถูกรายงานว่าเป็นมิจฉาชีพ",
-      accountNumber,
-      bank: "ไม่ระบุ",
-      message: "อันตราย! บัญชีนี้ถูกระบุว่าเป็นบัญชีมิจฉาชีพ ห้ามโอนเงิน!",
-    }
+  if (!response.ok) {
+    throw new Error(
+      "error" in data && data.error ? data.error : "ไม่สามารถตรวจสอบได้ กรุณาลองใหม่อีกครั้ง"
+    )
   }
 
-  if (cleanedAccount.startsWith("08") || cleanedAccount.startsWith("09") || cleanedAccount.startsWith("06")) {
-    return {
-      status: "warning",
-      accountName: "บัญชีส่วนบุคคล",
-      accountNumber,
-      bank: "ไม่ระบุ",
-      message: "ระวัง! บัญชีนี้เป็นบัญชีส่วนตัว ไม่ใช่มูลนิธิที่ขึ้นทะเบียน กรุณาตรวจสอบให้แน่ใจก่อนโอนเงิน",
-    }
-  }
-
-  return {
-    status: "warning",
-    accountName: "ไม่พบข้อมูล",
-    accountNumber,
-    bank: "ไม่ระบุ",
-    message: "ไม่พบข้อมูลบัญชีนี้ในระบบ กรุณาตรวจสอบอีกครั้งหรือติดต่อมูลนิธิโดยตรง",
-  }
+  return data as VerificationResult
 }
 
 export default function TruadBoonApp() {
@@ -168,6 +147,7 @@ export default function TruadBoonApp() {
   const [uploadedFile, setUploadedFile] = useState<string | null>(null)
   const [currentStage, setCurrentStage] = useState(0)
   const [currentMicroCopy, setCurrentMicroCopy] = useState(0)
+  const [microCopyKey, setMicroCopyKey] = useState(0)
 
   useEffect(() => {
     if (isAnalyzing || verificationResult) {
@@ -195,6 +175,7 @@ export default function TruadBoonApp() {
 
       microCopyTimer = setInterval(() => {
         setCurrentMicroCopy((prev) => (prev + 1) % microCopyMessages.length)
+        setMicroCopyKey((prev) => prev + 1)
       }, 3000)
 
       progressStages()
@@ -206,39 +187,106 @@ export default function TruadBoonApp() {
     } else {
       setCurrentStage(0)
       setCurrentMicroCopy(0)
+      setMicroCopyKey(0)
     }
   }, [isAnalyzing, currentStage])
 
   const handleVerify = async () => {
-    if (accountNumber.length >= 10) {
-      setIsAnalyzing(true)
-      await new Promise((resolve) => setTimeout(resolve, 8000))
-      const result = verifyAccount(accountNumber)
+    const trimmedAccount = accountNumber.trim()
+    if (trimmedAccount.length < 10) {
+      return
+    }
+
+    setIsAnalyzing(true)
+    setVerificationResult(null)
+    setAccountNumber(trimmedAccount)
+
+    try {
+      const result = await requestVerification({ accountNumber: trimmedAccount })
       setVerificationResult(result)
       setShowSafetyChecklist(result.status === "warning")
+    } catch (error) {
+      setVerificationResult({
+        status: "warning",
+        accountName: "ไม่สามารถตรวจสอบได้",
+        accountNumber: trimmedAccount,
+        bank: "ไม่ระบุ",
+        message:
+          error instanceof Error ? error.message : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+        matchedType: "NONE",
+      })
+      setShowSafetyChecklist(true)
+    } finally {
       setIsAnalyzing(false)
     }
   }
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setUploadedFile(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-
-      setIsAnalyzing(true)
-      await new Promise((resolve) => setTimeout(resolve, 8000))
-
-      const mockScannedAccount = "565-471106-1"
-      setAccountNumber(mockScannedAccount)
-      const result = verifyAccount(mockScannedAccount)
-      setVerificationResult(result)
-      setShowSafetyChecklist(result.status === "warning")
-      setIsAnalyzing(false)
+    if (!file) {
+      return
     }
+
+    const inputElement = event.target
+    setIsAnalyzing(true)
+    setVerificationResult(null)
+
+    const reader = new FileReader()
+    reader.onloadend = async () => {
+      let scannedAccount = ""
+
+      try {
+        const imageData = reader.result as string
+        setUploadedFile(imageData)
+
+        const extractionResponse = await fetch("/api/process-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: imageData }),
+        })
+
+        const extractionData = await extractionResponse.json().catch(() => null)
+
+        if (!extractionResponse.ok || !extractionData) {
+          throw new Error(
+            (extractionData as { error?: string } | null)?.error ||
+              "ไม่สามารถอ่านข้อมูลจากรูปภาพได้ กรุณาลองใหม่"
+          )
+        }
+
+        if (!extractionData.accountNumber) {
+          throw new Error("ไม่พบเลขบัญชีในสลิป กรุณากรอกเลขบัญชีด้วยตนเอง")
+        }
+
+        scannedAccount = extractionData.accountNumber
+        setAccountNumber(scannedAccount)
+
+        const result = await requestVerification({
+          accountNumber: scannedAccount,
+          accountName: extractionData.accountName,
+          bank: extractionData.bank ? String(extractionData.bank) : undefined,
+        })
+
+        setVerificationResult(result)
+        setShowSafetyChecklist(result.status === "warning")
+      } catch (error) {
+        setVerificationResult({
+          status: "warning",
+          accountName: "ไม่สามารถตรวจสอบได้",
+          accountNumber: scannedAccount || accountNumber || "ไม่พบเลขบัญชี",
+          bank: "ไม่ระบุ",
+          message:
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+          matchedType: "NONE",
+        })
+        setShowSafetyChecklist(true)
+      } finally {
+        setIsAnalyzing(false)
+      }
+    }
+
+    reader.readAsDataURL(file)
+    inputElement.value = ""
   }
 
   const handleCloseResult = () => {
@@ -567,7 +615,7 @@ export default function TruadBoonApp() {
 
                     <p
                       className="text-sm text-muted-foreground leading-relaxed max-w-sm px-4 animate-in fade-in duration-500"
-                      key={currentMicroCopy}
+                      key={microCopyKey}
                     >
                       {microCopyMessages[currentMicroCopy]}
                     </p>
