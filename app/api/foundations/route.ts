@@ -5,6 +5,10 @@ import { validateSensitiveOperation } from "@/lib/api-auth"
 // GET - Public endpoint: Fetch verified foundations
 export async function GET(req: NextRequest) {
   try {
+    console.log("[Foundations API] Starting fetch request")
+    console.log("[Foundations API] Database URL exists:", !!process.env.TURSO_DATABASE_URL)
+    console.log("[Foundations API] Auth Token exists:", !!process.env.TURSO_AUTH_TOKEN)
+    
     const foundations = await prisma.foundation.findMany({
       where: { verified: true },
       select: {
@@ -16,11 +20,18 @@ export async function GET(req: NextRequest) {
         verified: true,
       },
     })
+    
+    console.log(`[Foundations API] Successfully fetched ${foundations.length} foundations`)
     return NextResponse.json(foundations)
   } catch (error) {
-    console.error("Foundations fetch error:", error)
+    console.error("[Foundations API] Error:", error)
+    console.error("[Foundations API] Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    })
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
