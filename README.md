@@ -20,32 +20,36 @@
 
 <img width="640" height="480" alt="3" src="https://github.com/user-attachments/assets/bad8c194-8431-4abc-814e-2d27057bfd6b" />
 
-<img width="640" height="480" alt="4" src="https://github.com/user-attachments/assets/dd2dbf09-edb2-4795-ae86-1d200cc76942" />
 
-<img width="640" height="480" alt="5" src="https://github.com/user-attachments/assets/c21ae78c-c2ff-4ebb-a971-29ece7462105" />
+<img width="640" height="480" alt="4" src="https://github.com/user-attachments/assets/83a26d01-6548-4538-a841-6b3603c4fd15" />
 
-<img width="640" height="480" alt="6" src="https://github.com/user-attachments/assets/9c1e6df7-2b74-441f-b445-d5645f0476fa" />
+<img width="640" height="480" alt="5" src="https://github.com/user-attachments/assets/aabe4acc-929c-48f9-b45f-8d74514de95f" />
 
-<img width="640" height="480" alt="7" src="https://github.com/user-attachments/assets/015ae58c-3c7f-460b-aa3e-36e9e43d2eee" />
+<img width="640" height="480" alt="6" src="https://github.com/user-attachments/assets/c96486e0-e842-4fe8-8d64-6384c54a84fd" />
 
-<img width="640" height="480" alt="8" src="https://github.com/user-attachments/assets/c4a06fbe-7923-4af7-b1df-e98f6d23632d" />
+<img width="640" height="480" alt="7" src="https://github.com/user-attachments/assets/876ad22b-1201-45eb-8a1a-2d47e7209ca5" />
 
-<img width="640" height="480" alt="9" src="https://github.com/user-attachments/assets/b634a9c1-0405-48ff-b22e-ad56d10b64a2" />
+<img width="640" height="480" alt="8" src="https://github.com/user-attachments/assets/8fdbb15d-4328-4c5f-84ff-b1bfd1c4d8f1" />
 
-<img width="640" height="480" alt="10" src="https://github.com/user-attachments/assets/eb8ad76a-fe4c-4edd-95ff-d5cc8561e591" />
+<img width="640" height="480" alt="9" src="https://github.com/user-attachments/assets/c4c07ad2-8482-4406-8b31-5d3cedd6937b" />
 
-<img width="640" height="480" alt="11" src="https://github.com/user-attachments/assets/ac6b459b-9437-4a52-921f-79b813940d21" />
+<img width="640" height="480" alt="10" src="https://github.com/user-attachments/assets/1b18ac5e-cedc-4752-b413-4ca42147adfe" />
 
-<img width="640" height="480" alt="12" src="https://github.com/user-attachments/assets/7ccff202-60ca-4994-8761-527c4d427033" />
+<img width="640" height="480" alt="11" src="https://github.com/user-attachments/assets/b2d9f859-df96-4472-b75d-6d7be4ed61ef" />
 
-<img width="640" height="480" alt="13" src="https://github.com/user-attachments/assets/7f29787e-6f33-46d9-a719-f3e283bb28c3" />
+<img width="640" height="480" alt="12" src="https://github.com/user-attachments/assets/6f18a5d2-3ea8-42f6-a17d-33be37b02ce6" />
 
-<img width="640" height="480" alt="14" src="https://github.com/user-attachments/assets/7f507dc1-5581-4b2a-ac2d-655de1556c50" />
+<img width="640" height="480" alt="13" src="https://github.com/user-attachments/assets/8d218947-29ae-443e-870c-7e8a8be94d98" />
+
+<img width="640" height="480" alt="14" src="https://github.com/user-attachments/assets/7cb7354b-a439-4c04-a3ac-068f41cf4b95" />
+
+<img width="640" height="480" alt="15" src="https://github.com/user-attachments/assets/d905db1e-74f9-445c-b493-9dabd169d11d" />
+
+<img width="640" height="480" alt="16" src="https://github.com/user-attachments/assets/06b591e5-9b7b-4fd0-9633-334f96fe3f78" />
+
+<img width="640" height="480" alt="17" src="https://github.com/user-attachments/assets/6ffcac10-2341-458c-95c8-fc0baa069d58" />
 
 
-<img width="640" height="480" alt="16" src="https://github.com/user-attachments/assets/04893f79-cd13-45f3-b472-40274851fd41" />
-
-<img width="640" height="480" alt="17" src="https://github.com/user-attachments/assets/345c4b79-e60e-4dbf-8d7f-8d00d2d89d21" />
 
 </p>
 
@@ -62,7 +66,6 @@ Traudboon is a web application designed to verify donation accounts before you t
 -  **Real-time Verification** — Instant account validation against verified foundations
 -  **Scam Detection** — Pattern matching to identify suspicious accounts
 -  **QR Code Support** — Upload and verify payment QR codes
--  **Dark Mode** — Seamless light/dark theme switching
 - **Mobile Responsive** — Optimized for all screen sizes
 -  **Fast & Lightweight** — Built with modern web technologies
 
@@ -169,10 +172,6 @@ Contributions are welcome! Please follow these steps:
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
