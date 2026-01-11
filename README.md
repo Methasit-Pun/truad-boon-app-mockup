@@ -49,17 +49,13 @@
 
 <img width="640" height="480" alt="17" src="https://github.com/user-attachments/assets/6ffcac10-2341-458c-95c8-fc0baa069d58" />
 
-
-
 </p>
-
-
 
 
 
 ## 📋 Overview
 
-Traudboon is a web application designed to verify donation accounts before you transfer money, helping protect users from scam operations disguised as legitimate charitable organizations. Simply enter account details or upload a QR code to check against our verified foundation database.
+Traudboon is a LineOA web application designed to verify donation accounts before you transfer money, helping protect users from scam operations disguised as legitimate charitable organizations. Simply enter account details or upload a QR code to check against our verified foundation database.
 
 ## ✨ Features
 
@@ -68,6 +64,19 @@ Traudboon is a web application designed to verify donation accounts before you t
 -  **QR Code Support** — Upload and verify payment QR codes
 - **Mobile Responsive** — Optimized for all screen sizes
 -  **Fast & Lightweight** — Built with modern web technologies
+
+## 💻 System Architecture
+### MVP 
+<p align="center">
+<img width="542" height="527" alt="image" src="https://github.com/user-attachments/assets/28d5e6b0-8269-4054-badb-f3fe5be62bda" />
+</p>
+
+### Scalable Production
+
+<p align="center">
+<img width="720" height="720" alt="KBTG and sumsung meeting #1 (2)33" src="https://github.com/user-attachments/assets/57adc788-1b34-4e99-8f18-e39dd8984473" />
+</p>
+
 
 ## 🚀 Quick Start
 
