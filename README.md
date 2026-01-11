@@ -17,16 +17,16 @@
 
 ## 📋 Overview
 
-Traudboon is a web application designed to verify donation accounts before you transfer money, helping protect users from scam operations disguised as legitimate charitable organizations. Simply enter account details or upload a QR code to check against our verified foundation database.
+Traudboon is a web application  designed to verify donation accounts before you transfer money, helping protect users from scam operations disguised as legitimate charitable organizations. Simply enter account details or upload a QR code to check against our verified foundation database.
 
 ## ✨ Features
 
-- 🔍 **Real-time Verification** — Instant account validation against verified foundations
-- 🛡️ **Scam Detection** — Pattern matching to identify suspicious accounts
-- 📸 **QR Code Support** — Upload and verify payment QR codes
-- 🎨 **Dark Mode** — Seamless light/dark theme switching
-- 📱 **Mobile Responsive** — Optimized for all screen sizes
-- ⚡ **Fast & Lightweight** — Built with modern web technologies
+-  **Real-time Verification** — Instant account validation against verified foundations
+-  **Scam Detection** — Pattern matching to identify suspicious accounts
+-  **QR Code Support** — Upload and verify payment QR codes
+-  **Dark Mode** — Seamless light/dark theme switching
+- **Mobile Responsive** — Optimized for all screen sizes
+-  **Fast & Lightweight** — Built with modern web technologies
 
 ## 🚀 Quick Start
 
@@ -39,7 +39,7 @@ Traudboon is a web application designed to verify donation accounts before you t
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Methasit-Pun/truad-boon-app-mockup.git
 cd truad-boon-app-mockup
 
 # Install dependencies
