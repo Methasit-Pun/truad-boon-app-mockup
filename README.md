@@ -9,15 +9,23 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38bdf8?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-red.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 </div>
 
 ---
 
+<p align="center">
+  <img width="640" height="480" src="https://github.com/user-attachments/assets/e3329e3d-5ee3-40fb-ae67-7c05ac930559" />
+</p>
+
+
+
+
+
 ## 📋 Overview
 
-Traudboon is a web application  designed to verify donation accounts before you transfer money, helping protect users from scam operations disguised as legitimate charitable organizations. Simply enter account details or upload a QR code to check against our verified foundation database.
+Traudboon is a web application designed to verify donation accounts before you transfer money, helping protect users from scam operations disguised as legitimate charitable organizations. Simply enter account details or upload a QR code to check against our verified foundation database.
 
 ## ✨ Features
 
